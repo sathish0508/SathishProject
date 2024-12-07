@@ -17,10 +17,10 @@ IMAGE_DIR = os.path.join(BASE_DIR, "images")
 
 # Update paths to be relative
 image_paths = [
-    os.path.join(IMAGE_DIR, "images/Eyeswithglucoma.jpg"),  # Glaucoma image
-    os.path.join(IMAGE_DIR, "images/Sampb.jpg"),           # Glaucoma image
-    os.path.join(IMAGE_DIR, "images/normalEsys2.jpg"),     # No Glaucoma image
-    os.path.join(IMAGE_DIR, "images/NormalEys.jpg"),       # No Glaucoma image
+    os.path.join(IMAGE_DIR, "Eyeswithglucoma.jpg"),  # Glaucoma image
+    os.path.join(IMAGE_DIR, "Sampb.jpg"),           # Glaucoma image
+    os.path.join(IMAGE_DIR, "normalEsys2.jpg"),     # No Glaucoma image
+    os.path.join(IMAGE_DIR, "NormalEys.jpg"),       # No Glaucoma image
 ]
 
 # Labels for the images (binary: Glaucoma vs No Glaucoma)
@@ -63,8 +63,8 @@ model.fit(X_train, y_train)
 def calculate_affected_percentage(uploaded_image_features):
     # Reference glaucoma images (using relative paths)
     glaucoma_images = [
-        os.path.join(IMAGE_DIR, "images/Eyeswithglucoma.jpg"),
-        os.path.join(IMAGE_DIR, "images/Sampb.jpg"),
+        os.path.join(IMAGE_DIR, "Eyeswithglucoma.jpg"),
+        os.path.join(IMAGE_DIR, "Sampb.jpg"),
     ]
 
     distances = []
