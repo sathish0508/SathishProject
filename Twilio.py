@@ -11,11 +11,12 @@ app = Flask(__name__)
 CORS(app)
 CORS(app, resources={r"/predict": {"origins": "file:///C:/Users/Sathish%20L/Downloads/Untitled-2.html"}})
 # Paths for training images (glaucoma and no glaucoma)
+# Define image paths relative to the current script's directory
 image_paths = [
-    r'D:\SATHISH\Tickets\Eyeswithglucoma.jpg',  # Glaucoma image
-    r'D:\SATHISH\Tickets\Sampb.jpg',           # Glaucoma image
-    r'D:\SATHISH\Tickets\normalEsys2.jpg',     # No Glaucoma image
-    r'D:\SATHISH\Tickets\NormalEys.jpg',       # No Glaucoma image
+    os.path.join(base_dir, "Eyeswithglucoma.jpg"),
+    os.path.join(base_dir, "Sampb.jpg"),
+    os.path.join(base_dir, "normalEsys2.jpg"),
+    os.path.join(base_dir, "NormalEys.jpg"),
 ]
 
 # Labels for the images (binary: Glaucoma vs No Glaucoma)
@@ -57,10 +58,10 @@ model.fit(X_train, y_train)
 # Helper function to calculate affected percentage
 def calculate_affected_percentage(uploaded_image_features):
     # Reference glaucoma images
-    glaucoma_images = [
-        r'D:\SATHISH\Tickets\Eyeswithglucoma.jpg', 
-        r'D:\SATHISH\Tickets\Sampb.jpg'
-    ]
+    glaucoma_images  = [
+    os.path.join(base_dir, "Eyeswithglucoma.jpg"),
+    os.path.join(base_dir, "Sampb.jpg"),
+   ]
     
     distances = []
     for path in glaucoma_images:
