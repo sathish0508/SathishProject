@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glaucoma Disease Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2; /* Light gray background */
+            text-align: center;
+            color: #333;
+        }
+
+        header {
+            background-color: #1a73e8; /* Premium blue color */
+            color: white;
+            padding: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            width: 80%;
+            margin: 30px auto;
+        }
+
+        .upload-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .upload-container h3 {
+            color: #1a73e8;
+            margin-bottom: 20px;
+        }
+
+        .upload-container input[type="file"] {
+            padding: 12px;
+            border: 2px solid #ccc;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .upload-container .btn {
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .upload-container .btn:hover {
+            background-color: #218838;
+        }
+
+        .preview-section {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            border: 2px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            max-width: 300px;
+            max-height: 300px;
+            overflow: hidden;
+            text-align: left;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-section img {
+            width: 100%;
+            height: auto;
+        }
+
+        .preview-section .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #ff0000;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .progress {
+            width: 100%;
+            background-color: #ddd;
+            margin-top: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #4caf50;
+            border-radius: 10px;
+        }
+
+        .prediction-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .prediction-output, .classification-report, .statistical-data {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            width: 45%;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .classification-report {
+            width: 48%;
+            text-align: left;
+        }
+
+        .statistical-data {
+            width: 48%;
+            text-align: left;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            width: 25%;
+            margin-top: 20px;
+        }
+
+        .chart-container canvas {
+            width: 40%; /* Set canvas to 40% of the available width */
+            height: 20px; /* Smaller height */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f1f1;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    Glaucoma Disease Detection Using Machine Learning
+</header>
+
+<div class="container">
+    <!-- Glaucoma Information Section -->
+    <div class="glaucoma-details">
+        <h3 style="font-family: 'Arial', sans-serif; color: #1a73e8;">What is Glaucoma?</h3>
+        <p>
+            Glaucoma is a group of eye diseases that damage the optic nerve, often caused by high eye pressure. It is one of the leading causes of blindness worldwide. The disease is progressive and often has no symptoms until significant damage is done. Early detection and treatment are key to preventing vision loss.
+        </p>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="upload-container">
+        <h3>Upload Retinal Image</h3>
+        <label for="imageUpload" style="font-size: 16px; color: #1a73e8;">Click to Upload Image</label>
+        <input type="file" id="imageUpload" accept="image/*">
+
+        <!-- Upload Buttons in Same Row -->
+        <div class="upload-buttons">
+            <button class="btn" onclick="previewImage()">Preview Image</button>
+            <button class="btn" onclick="analyzeImage()">Analyze Image</button>
+        </div>
+    </div>
+
+    <!-- Mobile Number Input Section -->
+<div class="mobile-number-container">
+    <label for="mobileNumber" style="font-size: 16px; color: #1a73e8; margin-top: 20px;">Enter Patient Mobile Number</label>
+    <input type="text" id="mobileNumber" placeholder="Enter mobile number" style="padding: 12px; border: 2px solid #ccc; font-size: 16px; width: 100%; border-radius: 5px; margin-bottom: 20px;">
+</div>
+
+<!-- Send Report Button -->
+<div class="send-report-container">
+    <button class="btn" onclick="sendReport()">Send Report</button>
+</div>
+
+    <!-- Progress Bar -->
+    <div class="progress">
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
+    <div id="predictionSection" class="prediction-section" style="display: none;">
+        <div class="prediction-output">
+            <h3>Prediction:</h3>
+            <p id="predictionResult">--</p>
+            <p id="affectedPercentage">Affected Percentage: --</p>
+            <p id="confidenceLevel">Confidence: --</p>
+            <p id="severityLevel">Severity: --</p>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="glaucomaPieChart"></canvas>
+        <canvas id="glaucomaBarChart"></canvas>
+    </div>
+    
+
+    <!-- Preview Panel -->
+    <div class="preview-section">
+        <span class="close-btn" onclick="closePreview()">X</span>
+        <h4>Uploaded Image Preview</h4>
+        <img id="uploadedImage" src="" alt="Uploaded Image" />
+    </div>
+
+    <!-- Prediction Section -->
+    <div id="predictionSection" class="prediction-section">
+        <div class="prediction-output">
+            <h3>Prediction:</h3>
+            <p id="predictionResult">Glaucoma / No Glaucoma</p>
+        </div>
+
+        <!-- Classification Report -->
+        <div class="classification-report">
+            <h3>Classification Report:</h3>
+            <table id="classificationReport">
+                <tr>
+                    <th>Class</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1-Score</th>
+                </tr>
+                <tr>
+                    <td>No Glaucoma</td>
+                    <td>0.94</td>
+                    <td>0.91</td>
+                    <td>0.92</td>
+                </tr>
+                <tr>
+                    <td>Glaucoma</td>
+                    <td>0.89</td>
+                    <td>0.92</td>
+                    <td>0.91</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Statistical Data Section -->
+        <div class="statistical-data">
+            <h3>Statistical Data:</h3>
+            <ul>
+                <li>Detection Time: <span id="detectionTime">0s</span></li>
+                <li>Model Accuracy: <span id="modelAccuracy">88%</span></li>
+                <li>Historical Result: <span id="historicalResult">No Glaucoma</span></li>
+            </ul>
+        </div>
+
+        <!-- Chart Section (Pie + Bar Chart) -->
+        <div class="chart-container">
+            <canvas id="glaucomaPieChart"></canvas>
+            <canvas id="glaucomaBarChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to preview the uploaded image
+    function previewImage() {
+        const fileInput = document.getElementById("imageUpload");
+        const uploadedImage = document.getElementById("uploadedImage");
+
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImage.src = e.target.result;
+                // Show the preview panel when the preview button is clicked
+                document.querySelector(".preview-section").style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Function to close the preview panel
+    function closePreview() {
+        document.querySelector(".preview-section").style.display = "none";
+    }
+
+    // Simulate image analysis with progress bar and chart display
+    function analyzeImage() {
+    const fileInput = document.getElementById("imageUpload");
+    const file = fileInput ? fileInput.files[0] : null;
+
+    if (!file) {
+        alert("Please upload an image.");
+        return;
+    }
+
+    // Show the progress bar while processing the image
+    const progressBar = document.getElementById("progressBar");
+    if (progressBar) {
+        document.querySelector(".progress").style.display = "block";
+        let progress = 0;
+        let progressInterval = setInterval(() => {
+            if (progress < 100) {
+                progress += 10;
+                progressBar.style.width = progress + "%";
+            } else {
+                clearInterval(progressInterval);
+            }
+        }, 500);
+    }
+
+    // Create a FormData object and append the uploaded file
+    const formData = new FormData();
+    formData.append("file", file); // Ensure 'file' matches Flask route
+
+    // Make the API call to the backend
+    fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+
+        // Safely bind API response to UI
+        const predictionResult = document.getElementById("predictionResult");
+        const affectedPercentage = document.getElementById("affectedPercentage");
+        const confidenceLevel = document.getElementById("confidenceLevel");
+        const severityLevel = document.getElementById("severityLevel");
+
+        if (predictionResult) predictionResult.textContent = data.glaucoma_detected || "No data";
+        if (affectedPercentage) affectedPercentage.textContent = `Affected Percentage: ${data.affected_percentage || "N/A"}%`;
+        if (confidenceLevel) confidenceLevel.textContent = `Confidence: ${data.confidence ? data.confidence.toFixed(2) : "N/A"}%`;
+        if (severityLevel) severityLevel.textContent = `Severity: ${data.severity || "N/A"}`;
+
+        // Display the prediction section
+        const predictionSection = document.getElementById("predictionSection");
+        if (predictionSection) predictionSection.style.display = "block";
+
+        // Optionally display a chart or additional visualizations
+        displayCharts(data.confidence, data.affected_percentage);
+    })
+    .catch(error => {
+        console.error("Error analyzing image:", error);
+        alert("Error analyzing image: " + error.message);
+    });
+}
+
+function displayCharts(confidence, affectedPercentage) {
+    // Fallback for missing or null values
+    const glaucomaConfidence = confidence || 0; 
+    const glaucomaAffected = affectedPercentage || 0;
+
+    // Create the pie chart
+    const pieCtx = document.getElementById("glaucomaPieChart").getContext("2d");
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Glaucoma', 'No Glaucoma'],
+            datasets: [{
+                data: [glaucomaConfidence, 100 - glaucomaConfidence],
+                backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    enabled: true,
+                }
+            }
+        }
+    });
+
+    // Create the bar chart
+    const barCtx = document.getElementById("glaucomaBarChart").getContext("2d");
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Glaucoma', 'No Glaucoma'],
+            datasets: [{
+                label: 'Prediction Confidence',
+                data: [glaucomaConfidence, 100 - glaucomaConfidence],
+                backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                }
+            }
+        }
+    });
+}
+
+
+
+
+    // Function to display prediction results and charts after analysis
+    function displayResults() {
+        // Simulated prediction result
+        const predictionResult = "No Glaucoma";
+        document.getElementById("predictionResult").textContent = predictionResult;
+
+        // Display the prediction section
+        document.getElementById("predictionSection").style.display = "block";
+
+        // Simulate chart data
+        const confidence = 60;  // Set smaller values for pie chart and bar chart
+
+        // Create the pie chart
+        const pieCtx = document.getElementById("glaucomaPieChart").getContext("2d");
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Glaucoma', 'No Glaucoma'],
+                datasets: [{
+                    data: [confidence, 100 - confidence],
+                    backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    }
+                }
+            }
+        });
+
+        // Create the bar chart
+        const barCtx = document.getElementById("glaucomaBarChart").getContext("2d");
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Glaucoma', 'No Glaucoma'],
+                datasets: [{
+                    label: 'Prediction Confidence',
+                    data: [confidence, 100 - confidence],
+                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                    }
+                }
+            }
+        });
+
+        // Send SMS after analysis is complete (Replace with recipient number and message)
+        //sendSMS();
+    }
+
+    // Function to send SMS using the Flask API
+    function sendSMS() {
+        const smsData = {
+            "to": "+918270854438",  // Replace with actual recipient number
+            "message": "Hello, this is SMS Please Contact Doctor for Admission"
+        };
+
+        fetch("http://127.0.0.1:5000/send-sms", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(smsData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("SMS Sent Successfully, SID: " + data.sid);
+            } else {
+                console.error("Failed to send SMS: " + data.error);
+            }
+        })
+        .catch(error => {
+            console.error("Error sending SMS:", error);
+        });
+    }
+</script>
+
+<script>
+// Function to send the report via SMS after analysis is complete
+function sendReport() {
+    const mobileNumber = document.getElementById("mobileNumber").value;  // Get the mobile number input
+    const predictionResult = document.getElementById("predictionResult").textContent;  // Get the prediction result
+
+    // Check if the mobile number is valid
+    if (!mobileNumber || mobileNumber.length < 10) {
+        alert("Please enter a valid mobile number.");
+        return;
+    }
+
+    // Send SMS using the entered mobile number and prediction result
+    const smsData = {
+        "to": `+91${mobileNumber}`,  // Prepend country code (+91 for India)
+        "message": `Glaucoma Disease Detection Report: ${predictionResult}. Please contact your doctor for further assistance.`
+    };
+
+    // Send the SMS using the Flask API
+    fetch("http://127.0.0.1:5000/send-sms", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(smsData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("SMS Sent Successfully, SID: " + data.sid);
+            alert("Report sent to patient successfully!");
+        } else {
+            console.error("Failed to send SMS: " + data.error);
+            alert("Failed to send the report. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error sending SMS:", error);
+        alert("An error occurred while sending the report. Please try again.");
+    });
+}
+
+
+</script>
+</body>
+</html>
