@@ -6,17 +6,21 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder
 from scipy.spatial.distance import euclidean
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
-CORS(app)
-CORS(app, resources={r"/predict": {"origins": "file:///C:/Users/Sathish%20L/Downloads/Untitled-2.html"}})
-# Paths for training images (glaucoma and no glaucoma)
-# Define image paths relative to the current script's directory
+CORS(app, resources={r"/predict": {"origins": "*"}})
+
+# Paths for training images (relative paths)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current script directory
+IMAGE_DIR = os.path.join(BASE_DIR, "images")
+
+# Update paths to be relative
 image_paths = [
-    os.path.join(base_dir, "Eyeswithglucoma.jpg"),
-    os.path.join(base_dir, "Sampb.jpg"),
-    os.path.join(base_dir, "normalEsys2.jpg"),
-    os.path.join(base_dir, "NormalEys.jpg"),
+    os.path.join(IMAGE_DIR, "Eyeswithglucoma.jpg"),  # Glaucoma image
+    os.path.join(IMAGE_DIR, "Sampb.jpg"),           # Glaucoma image
+    os.path.join(IMAGE_DIR, "normalEsys2.jpg"),     # No Glaucoma image
+    os.path.join(IMAGE_DIR, "NormalEys.jpg"),       # No Glaucoma image
 ]
 
 # Labels for the images (binary: Glaucoma vs No Glaucoma)
@@ -57,22 +61,24 @@ model.fit(X_train, y_train)
 
 # Helper function to calculate affected percentage
 def calculate_affected_percentage(uploaded_image_features):
-    # Reference glaucoma images
-    glaucoma_images  = [
-    os.path.join(base_dir, "Eyeswithglucoma.jpg"),
-    os.path.join(base_dir, "Sampb.jpg"),
-   ]
-    
+    # Reference glaucoma images (using relative paths)
+    glaucoma_images = [
+        os.path.join(IMAGE_DIR, "Eyeswithglucoma.jpg"),
+        os.path.join(IMAGE_DIR, "Sampb.jpg"),
+    ]
+
     distances = []
     for path in glaucoma_images:
         ref_image = cv2.imread(path)
+        if ref_image is None:
+            continue
         ref_image_resized = cv2.resize(ref_image, image_size)
         ref_image_features = ref_image_resized.flatten()
-        
+
         # Calculate Euclidean distance between the uploaded image and the reference image
         dist = euclidean(uploaded_image_features, ref_image_features)
         distances.append(dist)
-    
+
     # Normalize the distance to calculate the affected percentage
     max_distance = max(distances)
     min_distance = min(distances)
@@ -88,7 +94,6 @@ def predict():
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files['file']
-    
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
