@@ -6,6 +6,10 @@
     <title>Glaucoma Disease Detection</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
     <style>
         body {
@@ -28,20 +32,21 @@
 
         .container {
             width: 80%;
-            margin: 30px auto;
+            margin: 11px auto;
         }
 
-        .upload-container {
+        /* .upload-container {
             background-color: #fff;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 400px;
-            margin: 0 auto;
+            margin: 25px ;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
+           
+        } */
 
         .upload-container h3 {
             color: #1a73e8;
@@ -49,13 +54,22 @@
         }
 
         .upload-container input[type="file"] {
-            padding: 12px;
+            padding: 5px;
             border: 2px solid #ccc;
             width: 100%;
             font-size: 16px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        #predictionSection {
+        height: 300px; /* Adjust to your desired height */
+      
+        padding: 15px; /* Optional padding adjustment */
+    }
+    
+    .prediction-output {
+        margin-bottom: 15px;
+    }
 
         .upload-container .btn {
             padding: 12px 20px;
@@ -102,6 +116,7 @@
             font-size: 20px;
             cursor: pointer;
         }
+        
 
         .progress {
             width: 100%;
@@ -129,31 +144,42 @@
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: inline-block;
-            width: 45%;
+            width: 100%;
             margin-top: 20px;
             border-radius: 10px;
         }
+        .prediction-output {
+    float: left;
+    width: 100%; /* Set width to 45% for better alignment */
+    margin-right: 10%; /* Add margin for spacing */
+}
 
         .classification-report {
-            width: 48%;
+            width: 100%;
             text-align: left;
         }
 
         .statistical-data {
-            width: 48%;
+            width: 100%;
             text-align: left;
         }
 
         .chart-container {
             display: flex;
             justify-content: space-between;
-            width: 25%;
+            width: 50%;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
+     
 
         .chart-container canvas {
-            width: 40%; /* Set canvas to 40% of the available width */
-            height: 20px; /* Smaller height */
+            width: 45%; /* Set canvas to 40% of the available width */
+            height: 110px; /* Smaller height */
+        }
+        .mobile-number-container{
+            width: 300px;
+            height: 5px;
         }
 
         table {
@@ -176,64 +202,225 @@
             background-color: #f1f1f1;
         }
 
+
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 768px) {
+    header {
+        font-size: 20px;
+        padding: 15px;
+    }
+
+    .container {
+        width: 95%;
+    }
+
+    .upload-container {
+        width: 90%;
+    }
+
+    .upload-container .btn {
+        font-size: 14px;
+    }
+
+    .chart-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chart-container canvas {
+        width: 90%;
+        margin-bottom: 20px;
+    }
+
+    .prediction-output, .classification-report, .statistical-data {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        font-size: 18px;
+        padding: 10px;
+    }
+
+    .upload-container h3 {
+        font-size: 18px;
+    }
+
+    .upload-container .btn {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+
+    .progress-bar {
+        height: 10px;
+    }
+}
+
     </style>
 </head>
 <body>
 
-<header>
-    Glaucoma Disease Detection Using Machine Learning
-</header>
 
-<div class="container">
-    <!-- Glaucoma Information Section -->
-    <div class="glaucoma-details">
-        <h3 style="font-family: 'Arial', sans-serif; color: #1a73e8;">What is Glaucoma?</h3>
-        <p>
-            Glaucoma is a group of eye diseases that damage the optic nerve, often caused by high eye pressure. It is one of the leading causes of blindness worldwide. The disease is progressive and often has no symptoms until significant damage is done. Early detection and treatment are key to preventing vision loss.
-        </p>
-    </div>
+    <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px;">
+        <div style="flex-grow: 1; text-align: center;">
+            Glaucoma Disease Detection Using Machine Learning
+            <div class="progress">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+        <button class="btn-link" 
+                style="font-size: 14px; color: white; background-color: transparent; border: none; text-decoration: underline;" 
+                onclick="downloadAllImages()">Download Sample Images</button>
+    </header>
+    
+    
+    
+    
+<div>
 
-    <!-- Upload Section -->
-    <div class="upload-container">
-        <h3>Upload Retinal Image</h3>
-        <label for="imageUpload" style="font-size: 16px; color: #1a73e8;">Click to Upload Image</label>
-        <input type="file" id="imageUpload" accept="image/*">
+</div>
 
-        <!-- Upload Buttons in Same Row -->
-        <div class="upload-buttons">
-            <button class="btn" onclick="previewImage()">Preview Image</button>
-            <button class="btn" onclick="analyzeImage()">Analyze Image</button>
+<div class="container mt-5">
+    <!-- Row for Side-by-Side Layout -->
+    <div class="row justify-content-center">
+        <!-- First Column: Upload and Mobile Number Section -->
+        <div class="col-md-4">
+            <div class="upload-container" style="background-color: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                <!-- Upload Section -->
+                <h3 class="text-center" style="color: #1a73e8; font-weight: bold;">Upload Retinal Image</h3>
+                <label for="imageUpload" style="font-size: 16px; color: #1a73e8;"></label>
+                <input type="file" id="imageUpload" accept="image/*" class="form-control mb-3">
+                
+                <!-- Upload Buttons in Same Row -->
+                <div class="upload-buttons text-center mb-4">
+                    <button class="btn btn-primary w-48" onclick="previewImage()">Preview Image</button>
+                    <button class="btn btn-success w-48" onclick="analyzeImage()">Analyze Image</button>
+                </div>
+
+                <!-- Mobile Number Section -->
+                <h3 class="text-center mb-4" style="color: #1a73e8; font-weight: bold;">Enter Patient Mobile Number</h3>
+                <div class="form-group mb-3">
+                    <div class="row align-items-center">
+                        <label for="mobileNumber" class="col-md-4 col-form-label" style="font-size: 16px; color: #1a73e8; font-weight: 600;">Mobile Number</label>
+                        <div class="col-md-8">
+                            <input type="text" id="mobileNumber" placeholder="Enter mobile number" class="form-control" style="height: 45px; font-size: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button class="btn btn-primary btn-block" style="height: 45px; font-size: 16px; font-weight: bold;" onclick="sendReport()">Send Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Column: Prediction Section -->
+        <div class="col-md-4" id="predictionSection" class="prediction-section" style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="prediction-output">
+                <h3 class="text-center" style="color: #1a73e8; font-weight: bold;">Prediction</h3>
+                <p id="predictionResult">--</p>
+                <p id="affectedPercentage">Affected Percentage: --</p>
+                <p id="confidenceLevel">Confidence: --</p>
+                <p id="severityLevel">Severity: --</p>
+            </div>
+        </div>
+
+        <!-- Third Column: Chart Section -->
+<!-- Third Column: Chart Section -->
+<div class="col-md-4">
+    <div class="chart-container" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); height: 500px;"> <!-- Adjusted container height -->
+        <h3 class="text-center" style="color: #1a73e8; font-weight: bold;">Charts</h3>
+        <div class="row">
+            <!-- Pie Chart -->
+            <div class="col-md-12 mb-3" style="display: flex; justify-content: center; align-items: center;"> <!-- Centering canvas -->
+                <canvas id="glaucomaPieChart" style="width: 200px; height: 200px;"></canvas> <!-- Reduced chart size -->
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="col-md-12" style="display: flex; justify-content: center; align-items: center;"> <!-- Centering canvas -->
+                <canvas id="glaucomaBarChart" style="width: 300px; height: 150px;"></canvas> <!-- Reduced chart size -->
+            </div>
         </div>
     </div>
-
-    <!-- Mobile Number Input Section -->
-<div class="mobile-number-container">
-    <label for="mobileNumber" style="font-size: 16px; color: #1a73e8; margin-top: 20px;">Enter Patient Mobile Number</label>
-    <input type="text" id="mobileNumber" placeholder="Enter mobile number" style="padding: 12px; border: 2px solid #ccc; font-size: 16px; width: 100%; border-radius: 5px; margin-bottom: 20px;">
 </div>
 
-<!-- Send Report Button -->
-<div class="send-report-container">
-    <button class="btn" onclick="sendReport()">Send Report</button>
+
+    </div>
 </div>
+
+<!-- Optional: Add custom styles to ensure alignment -->
+<style>
+    /* Ensure the upload section, prediction section, and chart container use 100% of available width in columns */
+    .upload-container, .prediction-section, .chart-container {
+        width: 100%;  /* Ensures each section takes full width of its column */
+    }
+
+    /* Buttons width adjusted to be side by side with margin */
+    .upload-buttons button {
+        width: 48%; /* Set buttons to take 48% of width to align side by side */
+        margin-right: 4%; /* Adding space between buttons */
+    }
+
+    .upload-buttons button:last-child {
+        margin-right: 0; /* Remove right margin for the last button */
+    }
+
+    /* Set the file input to full width */
+    .form-control {
+        width: 100%;  /* Ensures that the file input takes full width */
+    }
+
+    /* Set the canvas for charts to be responsive and aligned properly */
+    #glaucomaPieChart, #glaucomaBarChart {
+        width: 100% !important; /* Ensures charts take up full width of their container */
+        height: 250px;           /* Set height for charts */
+    }
+
+    /* Make the columns and row behave responsively */
+    .row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .col-md-4 {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin-bottom: 20px;
+    }
+
+    /* Center headings in sections */
+    h3 {
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .container {
+        max-width: 1200px;  /* Limit container width */
+    }
+
+    /* Add padding to make the sections have a more balanced look */
+    .upload-container, .prediction-section, .chart-container {
+        padding: 20px;
+    }
+
+    /* Ensure the layout is responsive */
+    @media (max-width: 768px) {
+        .col-md-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
 
     <!-- Progress Bar -->
-    <div class="progress">
-        <div id="progressBar" class="progress-bar"></div>
-    </div>
-    <div id="predictionSection" class="prediction-section" style="display: none;">
-        <div class="prediction-output">
-            <h3>Prediction:</h3>
-            <p id="predictionResult">--</p>
-            <p id="affectedPercentage">Affected Percentage: --</p>
-            <p id="confidenceLevel">Confidence: --</p>
-            <p id="severityLevel">Severity: --</p>
-        </div>
-    </div>
-    <div class="chart-container">
-        <canvas id="glaucomaPieChart"></canvas>
-        <canvas id="glaucomaBarChart"></canvas>
-    </div>
+  
+    
     
 
     <!-- Preview Panel -->
@@ -575,6 +762,39 @@ function sendReport() {
 }
 
 
+</script>
+
+
+
+<script>
+    function downloadAllImages() {
+        // Trigger the Flask route to download all images in sequence
+        fetch('https://sathishproject-8.onrender.com/download_all_images')
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                // Loop through each image response and trigger the download
+                if (data.images && data.images.length > 0) {
+                    data.images.forEach((image) => {
+                        const imageId = image.image_id;
+
+                        // Trigger the download for each image
+                        fetch(`/download_image/${imageId}`)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${imageId}.jpg`; // Download with the image_id as filename
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                            })
+                            .catch(error => console.error('Error downloading the image:', error));
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching images:', error));
+    }
 </script>
 </body>
 </html>
