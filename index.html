@@ -127,17 +127,17 @@
         .progress {
             width: 100%;
             background-color: #ddd;
-            margin-top: 20px;
-            height: 20px;
-            border-radius: 10px;
+            
+            
+            margin-top: 0px;
             display: none;
         }
 
         .progress-bar {
-            width: 0%;
-            height: 100%;
+            
+           margin-top: 0px;
             background-color: #4caf50;
-            border-radius: 10px;
+            border-radius: 5px;
         }
 
         .prediction-section {
@@ -272,9 +272,6 @@
     <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px;">
         <div style="flex-grow: 1; text-align: center; font-family: 'Inter', sans-serif;">
             Glaucoma Disease Detection Using Machine Learning
-            <div class="progress">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
         </div>
         <button class="btn-link animated-bounce" 
         style="font-size: 14px; color: white; background-color: transparent; border: none; text-decoration: underline;" 
@@ -372,7 +369,9 @@
 </div>
 
 
-    </div>
+<div class="progress">
+    <div id="progressBar" class="progress-bar"></div>
+</div>
 </div>
 
 <!-- Optional: Add custom styles to ensure alignment -->
@@ -723,7 +722,7 @@ function displayCharts(confidence, affectedPercentage) {
             "message": "Hello, this is SMS Please Contact Doctor for Admission"
         };
 
-        fetch("http://127.0.0.1:5000/send-sms", {
+        fetch("https://sathishproject-8.onrender.com/send-sms", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -763,7 +762,7 @@ function sendReport() {
     };
 
     // Send the SMS using the Flask API
-    fetch("http://127.0.0.1:5000/send-sms", {
+    fetch("https://sathishproject-8.onrender.com/send-sms", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -792,34 +791,36 @@ function sendReport() {
 
 
 <script>
-    function downloadAllImages() {
-        // Trigger the Flask route to download all images in sequence
-        fetch('https://sathishproject-8.onrender.com/download_all_images')
-            .then(response => response.json())  // Parse the JSON response
-            .then(data => {
-                // Loop through each image response and trigger the download
-                if (data.images && data.images.length > 0) {
-                    data.images.forEach((image) => {
-                        const imageId = image.image_id;
+  function downloadAllImages() {
+    fetch('https://sathishproject-8.onrender.com/download_all_images')
+        .then(response => response.json())
+        .then(data => {
+            const images = data.images;
 
-                        // Trigger the download for each image
-                        fetch(`/download_image/${imageId}`)
-                            .then(response => response.blob())
-                            .then(blob => {
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `${imageId}.jpg`; // Download with the image_id as filename
-                                document.body.appendChild(a);
-                                a.click();
-                                a.remove();
-                            })
-                            .catch(error => console.error('Error downloading the image:', error));
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching images:', error));
-    }
+            // Function to download one image at a time
+            function downloadNextImage(index) {
+                if (index >= images.length) return; // Stop when all images are downloaded
+
+                const imageId = images[index].image_id;
+                const imageUrl = `https://sathishproject-8.onrender.com/download_image/${imageId}`;
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `${imageId}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Schedule the next download
+                setTimeout(() => downloadNextImage(index + 1), 500); // Add a delay of 500ms between downloads
+            }
+
+            // Start downloading the first image
+            downloadNextImage(0);
+        })
+        .catch(error => console.error("Error downloading the images:", error));
+}
+
+
 </script>
 </body>
 </html>
