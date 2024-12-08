@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 
     <style>
         body {
@@ -19,10 +24,11 @@
             background-color: #f2f2f2; /* Light gray background */
             text-align: center;
             color: #333;
+            background: linear-gradient(135deg, #001f3f, #3d5a80);
         }
 
         header {
-            background-color: #1a73e8; /* Premium blue color */
+            background: linear-gradient(135deg, #001f3f, #3d5a80);
             color: white;
             padding: 20px;
             font-size: 28px;
@@ -62,7 +68,7 @@
             margin-bottom: 20px;
         }
         #predictionSection {
-        height: 300px; /* Adjust to your desired height */
+        height: 519px; /* Adjust to your desired height */
       
         padding: 15px; /* Optional padding adjustment */
     }
@@ -73,7 +79,7 @@
 
         .upload-container .btn {
             padding: 12px 20px;
-            background-color: #28a745;
+            background-color:#0d6efd;
             color: white;
             border: none;
             cursor: pointer;
@@ -264,17 +270,31 @@
 
 
     <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px;">
-        <div style="flex-grow: 1; text-align: center;">
+        <div style="flex-grow: 1; text-align: center; font-family: 'Inter', sans-serif;">
             Glaucoma Disease Detection Using Machine Learning
             <div class="progress">
                 <div id="progressBar" class="progress-bar"></div>
             </div>
         </div>
-        <button class="btn-link" 
-                style="font-size: 14px; color: white; background-color: transparent; border: none; text-decoration: underline;" 
-                onclick="downloadAllImages()">Download Sample Images</button>
+        <button class="btn-link animated-bounce" 
+        style="font-size: 14px; color: white; background-color: transparent; border: none; text-decoration: underline;" 
+        onclick="downloadAllImages()">Download Sample Images</button>
     </header>
-    
+    <style>
+       .animated-bounce {
+    position: relative;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+    </style>
     
     
     
@@ -286,24 +306,29 @@
     <!-- Row for Side-by-Side Layout -->
     <div class="row justify-content-center">
         <!-- First Column: Upload and Mobile Number Section -->
-        <div class="col-md-4">
-            <div class="upload-container" style="background-color: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+        <div class="col-md-4" style="margin-top: 20px">
+            <div class="upload-container" style="background-color: white; padding: 20px; border-radius: 10px;height: 498px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
                 <!-- Upload Section -->
-                <h3 class="text-center" style="color: #1a73e8; font-weight: bold;">Upload Retinal Image</h3>
+                <h3 class="text-center" style="color: black; font-weight: bold;">Upload Retinal Image</h3>
                 <label for="imageUpload" style="font-size: 16px; color: #1a73e8;"></label>
                 <input type="file" id="imageUpload" accept="image/*" class="form-control mb-3">
                 
                 <!-- Upload Buttons in Same Row -->
                 <div class="upload-buttons text-center mb-4">
-                    <button class="btn btn-primary w-48" onclick="previewImage()">Preview Image</button>
-                    <button class="btn btn-success w-48" onclick="analyzeImage()">Analyze Image</button>
+                    <div style="width: 20px;height: 20px; margin-top: 20px;right: 20px;">
+                        <a href="javascript:void(0); "  onclick="previewImage()">Preview Image</a>
+
+                    </div>
+                    
+
+                    <button class="btn btn-primary"  onclick="analyzeImage()">Analyze Image</button>
                 </div>
 
                 <!-- Mobile Number Section -->
-                <h3 class="text-center mb-4" style="color: #1a73e8; font-weight: bold;">Enter Patient Mobile Number</h3>
+                <h3 class="text-center mb-4" style="color: black; font-weight: bold;">Enter Patient Mobile Number</h3>
                 <div class="form-group mb-3">
                     <div class="row align-items-center">
-                        <label for="mobileNumber" class="col-md-4 col-form-label" style="font-size: 16px; color: #1a73e8; font-weight: 600;">Mobile Number</label>
+                        <label for="mobileNumber" class="col-md-4 col-form-label" style="font-size: 16px; color: black; font-weight: 600;">+91</label>
                         <div class="col-md-8">
                             <input type="text" id="mobileNumber" placeholder="Enter mobile number" class="form-control" style="height: 45px; font-size: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                         </div>
@@ -319,11 +344,11 @@
         <!-- Second Column: Prediction Section -->
         <div class="col-md-4" id="predictionSection" class="prediction-section" style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
             <div class="prediction-output">
-                <h3 class="text-center" style="color: #1a73e8; font-weight: bold;">Prediction</h3>
+                <h3 class="text-center" style="color: black; font-weight: bold;">Diagnostic Results</h3>
                 <p id="predictionResult">--</p>
-                <p id="affectedPercentage">Affected Percentage: --</p>
-                <p id="confidenceLevel">Confidence: --</p>
-                <p id="severityLevel">Severity: --</p>
+                <p id="affectedPercentage" style="font-weight: bold;font-family: 'Poppins', sans-serif;">Affected Percentage: --</p>
+                <p id="confidenceLevel"style="font-weight: bold;font-family: 'Inter', sans-serif;" >Accuracy: --</p>
+                <p id="severityLevel" style="font-weight: bold;font-family: 'Inter', sans-serif;">Severity: --</p>
             </div>
         </div>
 
@@ -331,7 +356,7 @@
 <!-- Third Column: Chart Section -->
 <div class="col-md-4">
     <div class="chart-container" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); height: 500px;"> <!-- Adjusted container height -->
-        <h3 class="text-center" style="color: #1a73e8; font-weight: bold;">Charts</h3>
+        <h3 class="text-center" style="color: black; font-weight: bold;">Charts</h3>
         <div class="row">
             <!-- Pie Chart -->
             <div class="col-md-12 mb-3" style="display: flex; justify-content: center; align-items: center;"> <!-- Centering canvas -->
