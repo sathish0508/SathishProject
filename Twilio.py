@@ -9,7 +9,7 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/predict": {"origins": "https://sathish0508.github.io"}})
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
 
 # Paths for training images (relative paths)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current script directory
