@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 import numpy as np
 import cv2
 from sklearn.model_selection import train_test_split
@@ -7,14 +7,15 @@ from sklearn.preprocessing import LabelEncoder
 from scipy.spatial.distance import euclidean
 from flask_cors import CORS
 import os
-import requests
-from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)
 
+# Paths for training images (relative paths)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current script directory
+IMAGE_DIR = os.path.join(BASE_DIR, "images")
 
-# Paths for training images (glaucoma and no glaucoma)
+# Update paths to be relative
 image_paths = [
     os.path.join(IMAGE_DIR, "Eyeswithglucoma.jpg"),  # Glaucoma image
     os.path.join(IMAGE_DIR, "Sampb.jpg"),           # Glaucoma image
@@ -60,22 +61,24 @@ model.fit(X_train, y_train)
 
 # Helper function to calculate affected percentage
 def calculate_affected_percentage(uploaded_image_features):
-    # Reference glaucoma images
+    # Reference glaucoma images (using relative paths)
     glaucoma_images = [
         os.path.join(IMAGE_DIR, "Eyeswithglucoma.jpg"),
         os.path.join(IMAGE_DIR, "Sampb.jpg"),
     ]
-    
+
     distances = []
     for path in glaucoma_images:
         ref_image = cv2.imread(path)
+        if ref_image is None:
+            continue
         ref_image_resized = cv2.resize(ref_image, image_size)
         ref_image_features = ref_image_resized.flatten()
-        
+
         # Calculate Euclidean distance between the uploaded image and the reference image
         dist = euclidean(uploaded_image_features, ref_image_features)
         distances.append(dist)
-    
+
     # Normalize the distance to calculate the affected percentage
     max_distance = max(distances)
     min_distance = min(distances)
@@ -91,7 +94,6 @@ def predict():
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files['file']
-    
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
@@ -119,7 +121,7 @@ def predict():
             affected_percentage = calculate_affected_percentage(sample_image_resized.flatten())
             severity = "High" if affected_percentage > 70 else "Medium" if affected_percentage > 40 else "Low"
             return jsonify({
-                "glaucoma_detected": "Patient Affcted By Glaucoma",
+                "glaucoma_detected": "Yes",
                 "affected_percentage": affected_percentage,
                 "confidence": predicted_probability,
                 "severity": severity
@@ -127,56 +129,13 @@ def predict():
         else:
             # No Glaucoma detected
             return jsonify({
-                "glaucoma_detected": "No Glaucoma Detected",
+                "glaucoma_detected": "No",
                 "confidence": 100 - predicted_probability,
                 "severity": "None"
             })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-# Image URLs
-# Image URLs
-image_map = {
-    'sampleimage1': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/Eyeswithglucoma.jpg',
-    'sampleimage2': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/Sampb.jpg',
-    'sampleimage3': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/normalEsys2.jpg',
-    'sampleimage4': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/NormalEys.jpg',
-}
-
-@app.route('/download_all_images', methods=['GET'])
-def download_all_images():
-    # Get all the image IDs
-    image_list = list(image_map.keys())
-    image_responses = []
-
-    try:
-        # Collect all image IDs to be sent back to the frontend
-        for image_id in image_list:
-            image_responses.append({'image_id': image_id})
-
-        # Return the list of image identifiers
-        return jsonify({"images": image_responses}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Route to handle individual image download based on image_id
-@app.route('/download_image/<image_id>', methods=['GET'])
-def download_image(image_id):
-    # Ensure the image_id is valid
-    if image_id not in image_map:
-        return jsonify({"error": "Invalid image ID"}), 404
-
-    # Fetch the image from the URL
-    image_url = image_map[image_id]
-    response = requests.get(image_url)
-
-    if response.status_code == 200:
-        # Return the image as a response to be downloaded
-        return send_file(BytesIO(response.content), as_attachment=True, download_name=f"{image_id}.jpg", mimetype='image/jpeg')
-    else:
-        return jsonify({"error": f"Failed to fetch {image_id} from GitHub"}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)
