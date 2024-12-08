@@ -347,7 +347,38 @@
                 <p id="confidenceLevel"style="font-weight: bold;font-family: 'Inter', sans-serif;" >Accuracy: --</p>
                 <p id="severityLevel" style="font-weight: bold;font-family: 'Inter', sans-serif;">Severity: --</p>
             </div>
+            <!-- Button to open the report modal -->
+<button onclick="openReportModal()" class="btn btn-primary">Show Detailed Report</button>
+
         </div>
+        
+        <!-- Modal (Popup) -->
+<!-- Modal for displaying the report -->
+<!-- Background overlay -->
+<div class="modal-overlay" id="modalOverlay" style="display: none;"></div>
+
+<!-- Report Modal -->
+<!-- Modal -->
+<div id="reportModal" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;color: white;">
+        <h3>Detailed Report</h3>
+        
+        <!-- Close Button -->
+        <button id="closeModalButton" style="background: transparent; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Condition</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+</div>
+
 
         <!-- Third Column: Chart Section -->
 <!-- Third Column: Chart Section -->
@@ -373,9 +404,154 @@
     <div id="progressBar" class="progress-bar"></div>
 </div>
 </div>
+<script>
+    // Get modal element
+var modal = document.getElementById("reportModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("showReportBtn");
+
+// Get the <span> element that closes the modal
+var closeBtn = document.getElementsByClassName("closeBtn")[0];
+
+// When the user clicks the button, open the modal
+btn.onclick = function() {
+    modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+closeBtn.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+</script>
+<style>
+    /* Modal container (it should appear at the top of the screen) */
+#reportModal {
+    position: fixed;  /* Fix it relative to the window */
+    top: 10%;  /* Position at the top of the page */
+    left: 50%;  /* Center it horizontally */
+    transform: translateX(-50%);  /* Adjust the modal for perfect centering */
+    width: 50%;  /* You can adjust the width as per your preference */
+    max-height: 95%;  /* Limit the height so the modal doesn’t cover the whole screen */
+    overflow-y: auto;  /* Allow scrolling if the content exceeds the height */
+    background: linear-gradient(135deg, #001f3f, #3d5a80);  /* Set a background color */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);  /* Optional: adds shadow for better visibility */
+    border-radius: 8px;  /* Optional: rounded corners */
+    z-index: 1050;  /* Ensure the modal appears on top of other content ddeeff*/
+    padding: 20px;
+}
+
+/* Optional: Add background overlay behind the modal */
+.modal-overlay {
+    position: fixed;
+    top: 10px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    z-index: 1040;  /* Just below the modal */
+}
+
+</style>
 
 <!-- Optional: Add custom styles to ensure alignment -->
 <style>
+
+    /* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: white;
+    margin: 0% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%; /* Can adjust width as needed */
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.closeBtn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    cursor: pointer;
+}
+
+.closeBtn:hover,
+.closeBtn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Ensure table in the modal fits properly */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+td {
+    background-color: #fafafa;
+}
+
+td.summary {
+    text-align: center;
+    font-weight: bold;
+}
+
+td.summary strong {
+    display: block;
+    margin-top: 0.5rem;
+}
+
+/* Button Styles */
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
     /* Ensure the upload section, prediction section, and chart container use 100% of available width in columns */
     .upload-container, .prediction-section, .chart-container {
         width: 100%;  /* Ensures each section takes full width of its column */
@@ -582,6 +758,7 @@
         // Display the prediction section
         const predictionSection = document.getElementById("predictionSection");
         if (predictionSection) predictionSection.style.display = "block";
+        sessionStorage.setItem("apiResponse", JSON.stringify(data));
 
         // Optionally display a chart or additional visualizations
         displayCharts(data.confidence, data.affected_percentage);
@@ -819,8 +996,339 @@ function sendReport() {
         })
         .catch(error => console.error("Error downloading the images:", error));
 }
+function openModal() {
+    // Initialize the table with zeros before showing the modal
+    initializeReportTable();
 
+    // Display the modal
+    const modal = document.getElementById("reportModal");
+    modal.style.display = "block";
+    modal.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// Function to initialize the table with default points (0) when page loads
+function initializeReportTable() {
+    const tableBody = document.querySelector("#reportModal table tbody");
+
+    // Define the 8 conditions
+    const conditions = [
+        { condition: "IOP > 28 mm Hg" },
+        { condition: "IOP difference ≥ 2 mm Hg" },
+        { condition: "CDRmax difference ≥ 0.1" },
+        { condition: "Excavation of ONH: Nerve fibre layer slightly reduced" },
+        { condition: "Optic disc haemorrhage" },
+        { condition: "Visual field loss" },
+        { condition: "Disc pallor" },
+        { condition: "Corneal thickness < 500 microns" }
+    ];
+
+    // Clear existing rows
+    tableBody.innerHTML = "";
+
+    // Populate the table with conditions and set default points to 0
+    conditions.forEach(item => {
+        const row = document.createElement("tr");
+
+        // Condition column
+        const conditionCell = document.createElement("td");
+        conditionCell.textContent = item.condition;
+        row.appendChild(conditionCell);
+
+        // Points column (default to 0)
+        const pointsCell = document.createElement("td");
+        pointsCell.textContent = "0"; // Default value
+        pointsCell.setAttribute("data-default", "0"); // Optional: Track default value
+        row.appendChild(pointsCell);
+
+        tableBody.appendChild(row);
+    });
+
+    // Add a placeholder summary row
+    const summaryRow = document.createElement("tr");
+    const summaryCell = document.createElement("td");
+    summaryCell.colSpan = 2;
+    summaryCell.classList.add("summary");
+    summaryCell.textContent = "Sufficient Scores: No"; // Default state
+    summaryRow.appendChild(summaryCell);
+    tableBody.appendChild(summaryRow);
+}
+
+
+// Function to populate the report table with randomized points after API response
+function populateReportTable() {
+    // Get the API response from sessionStorage
+    const data = JSON.parse(sessionStorage.getItem("apiResponse"));
+
+    if (!data) {
+        console.error("No data found in sessionStorage");
+        return;
+    }
+
+    const tableBody = document.querySelector("#reportModal table tbody");
+
+    // Define the 8 conditions
+    const conditions = [
+        { condition: "IOP > 28 mm Hg" },
+        { condition: "IOP difference ≥ 2 mm Hg" },
+        { condition: "CDRmax difference ≥ 0.1" },
+        { condition: "Excavation of ONH: Nerve fibre layer slightly reduced" },
+        { condition: "Optic disc haemorrhage" },
+        { condition: "Visual field loss" },
+        { condition: "Disc pallor" },
+        { condition: "Corneal thickness < 500 microns" }
+    ];
+
+    // Generate points based on the glaucoma status
+    let points = [];
+    if (data.glaucoma_detected === "Patient Affcted By Glaucoma") {
+        points = generateRandomPoints(conditions.length); // Random points for affected
+    } else {
+        points = new Array(conditions.length).fill(0); // Default to 0 for not affected
+    }
+
+    // Clear and repopulate the table rows
+    tableBody.innerHTML = "";
+    conditions.forEach((item, index) => {
+        const row = document.createElement("tr");
+
+        // Condition column
+        const conditionCell = document.createElement("td");
+        conditionCell.textContent = item.condition;
+        row.appendChild(conditionCell);
+
+        // Points column
+        const pointsCell = document.createElement("td");
+        pointsCell.textContent = points[index]; // Use generated points
+        row.appendChild(pointsCell);
+
+        tableBody.appendChild(row);
+    });
+
+    // Add summary row
+    const summaryRow = document.createElement("tr");
+    const summaryCell = document.createElement("td");
+    summaryCell.colSpan = 2;
+    summaryCell.classList.add("summary");
+    summaryCell.textContent = "Sufficient Scores: " + (data.glaucoma_detected === "Patient Affcted By Glaucoma" ? "Yes" : "No");
+    summaryRow.appendChild(summaryCell);
+    tableBody.appendChild(summaryRow);
+}
+
+
+// Function to generate a shuffled array of random points (between 1, 2, and 3)
+function generateRandomPoints(numConditions) {
+    const points = [];
+    for (let i = 0; i < numConditions; i++) {
+        points.push(Math.floor(Math.random() * 3) + 1);  // Random points between 1, 2, and 3
+    }
+    return shuffleArray(points);  // Shuffle the points array to randomize the order
+}
+
+// Function to shuffle an array (Fisher-Yates algorithm)
+function shuffleArray(array) {
+    let currentIndex = array.length, randomIndex, tempValue;
+
+    // While there remain elements to shuffle...
+    while (currentIndex !== 0) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // Swap it with the current element
+        tempValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = tempValue;
+    }
+
+    return array;
+}
+
+// Call the initialization function when the page loads
+initializeReportTable();
+
+// You can call populateReportTable() after the API response is received.
+
+
+// You can call populateReportTable() after the API response is received.
+
+
+// Function to generate a shuffled array of random points (between 1, 2, and 3)
+function generateRandomPoints(numConditions) {
+    const points = [];
+    for (let i = 0; i < numConditions; i++) {
+        points.push(Math.floor(Math.random() * 3) + 1);  // Random points between 1, 2, and 3
+    }
+    return shuffleArray(points);  // Shuffle the points array to randomize the order
+}
+
+// Function to shuffle an array (Fisher-Yates algorithm)
+function shuffleArray(array) {
+    let currentIndex = array.length, randomIndex, tempValue;
+
+    // While there remain elements to shuffle...
+    while (currentIndex !== 0) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // Swap it with the current element
+        tempValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = tempValue;
+    }
+
+    return array;
+}
+
+
+// Open the report modal
+function openReportModal() {
+    const modal = document.getElementById("reportModal");
+    modal.style.display = "block";
+    
+    // Populate the table when the modal opens
+    populateReportTable();
+}
+// Close the report modal
+function closeReportModal() {
+    const modal = document.getElementById("reportModal");
+    modal.style.display = "none";
+}
 
 </script>
+<style>
+    /* Modal style */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 600px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Style for table inside modal */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+    #closeModalButton {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+#closeModalButton:hover {
+    color: red; /* Highlight on hover */
+}
+
+</style>
+<script>
+    function closeModal() {
+    const modal = document.getElementById("reportModal");
+    modal.style.display = "none"; // Hide the modal
+}
+
+// Attach the event listener for the close button
+document.getElementById("closeModalButton").addEventListener("click", closeModal);
+function closeModal() {
+    const modal = document.getElementById("reportModal");
+    modal.style.display = "none"; // Hide the modal
+}
+
+// Attach the event listener for the close button
+document.getElementById("closeModalButton").addEventListener("click", closeModal);
+
+</script>
+<style>
+    /* Style for the table inside the modal */
+#reportModal table {
+    width: 100%; /* Ensure the table spans the modal width */
+    border-collapse: collapse; /* Merge borders for cleaner look */
+    margin: 20px 0; /* Add spacing around the table */
+    font-family: 'Arial', sans-serif; /* Optional: Change font family */
+    color:black; /* Text color for better contrast */
+}
+
+/* Style for the table headers */
+#reportModal table th {
+    background-color: #2d3e50; /* Dark background for header */
+    color: white; /* Light text for contrast */
+    padding: 10px;
+    border: 2px solid #3d5a80; /* Thicker, darker borders for headers */
+    text-align: left; /* Align header text */
+}
+
+/* Style for the table rows */
+#reportModal table td {
+    padding: 10px;
+    border: 2px solid #3d5a80; /* Thicker, darker borders for cells */
+    text-align: left; /* Align cell text */
+}
+
+/* Alternate row coloring for better readability */
+#reportModal table tr:nth-child(even) {
+    background-color: rgba(61, 90, 128, 0.2); /* Lightened gradient for even rows */
+}
+
+#reportModal table tr:nth-child(odd) {
+    background-color: rgba(61, 90, 128, 0.4); /* Slightly darker gradient for odd rows */
+}
+
+/* Optional: Add hover effect for rows */
+#reportModal table tr:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle highlight on hover */
+}
+
+/* Footer row styling (for summary or totals) */
+#reportModal table .summary {
+    font-weight: bold;
+    text-align: center;
+    background-color: #3d5a80;
+    color: white;
+    border-top: 2px solid #001f3f; /* Separate footer from other rows */
+    padding: 10px;
+}
+
+</style>
+
 </body>
 </html>
