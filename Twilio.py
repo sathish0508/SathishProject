@@ -9,9 +9,11 @@ from flask_cors import CORS
 import os
 import requests
 from io import BytesIO
+from twilio.rest import Client
 
 app = Flask(__name__)
 CORS(app)
+CORS(app, resources={r"/predict": {"origins": "file:///C:/Users/Sathish%20L/Downloads/Untitled-2.html"}})
 
 # Paths for training images (relative paths)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current script directory
@@ -167,6 +169,38 @@ def download_image(image_id):
         return send_file(BytesIO(response.content), as_attachment=True, download_name=f"{image_id}.jpg", mimetype='image/jpeg')
     else:
         return jsonify({"error": f"Failed to fetch {image_id} from GitHub"}), 400
+
+# Twilio credentials
+TWILIO_ACCOUNT_SID = 'AC6caf50fec7cd3ef826d652b8bc826af7'  # Replace with your Twilio Account SID
+TWILIO_AUTH_TOKEN = 'a2f1f37b2a94b22652fe22353da0c299'    # Replace with your Twilio Auth Token
+TWILIO_PHONE_NUMBER = '+17756185384'      # Replace with your Twilio phone number
+
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+@app.route('/send-sms', methods=['POST'])
+def send_sms():
+    try:
+        print("Starting SMS send process...")  # Log start
+        # Directly use the testing phone number and message
+        to_number = '+918270854438'  # Replace with your recipient's phone number
+        message_body = 'Hello, this is SMS from API Your Glaucoma Level is Very High So Please Contact Doctor for Admission..!!! Download your Report at : https://sathish0508.github.io/SathishProject/'
+
+        print(f"Sending SMS to: {to_number}")  # Log recipient
+
+        # Send SMS using Twilio
+        message = client.messages.create(
+            body=message_body,
+            from_=TWILIO_PHONE_NUMBER,
+            to=to_number
+        )
+
+        # Print success message to console
+        print(f"Send SMS Succ, SID: {message.sid}")  # Include message SID for confirmation
+
+        return jsonify({"success": True, "sid": message.sid})
+    except Exception as e:
+        print(f"Error: {e}")  # Log detailed error
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
