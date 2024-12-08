@@ -121,7 +121,7 @@ def predict():
             affected_percentage = calculate_affected_percentage(sample_image_resized.flatten())
             severity = "High" if affected_percentage > 70 else "Medium" if affected_percentage > 40 else "Low"
             return jsonify({
-                "glaucoma_detected": "Yes",
+                "glaucoma_detected": "Patient Affcted By Glaucoma",
                 "affected_percentage": affected_percentage,
                 "confidence": predicted_probability,
                 "severity": severity
@@ -129,7 +129,7 @@ def predict():
         else:
             # No Glaucoma detected
             return jsonify({
-                "glaucoma_detected": "No",
+                "glaucoma_detected": "No Glaucoma Detected",
                 "confidence": 100 - predicted_probability,
                 "severity": "None"
             })
