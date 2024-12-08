@@ -348,7 +348,10 @@
     // Make the API call to the backend
     fetch("https://sathishproject-8.onrender.com/predict", {
         method: "POST",
-        body: formData
+        body: formData,
+        headers: {
+        "Accept": "application/json"
+    }
     })
     .then(response => response.json())
     .then(data => {
