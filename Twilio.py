@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import numpy as np
 import cv2
 from sklearn.model_selection import train_test_split
@@ -7,6 +7,8 @@ from sklearn.preprocessing import LabelEncoder
 from scipy.spatial.distance import euclidean
 from flask_cors import CORS
 import os
+import requests
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)
@@ -136,6 +138,35 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+image_map = {
+    'sampleimage1': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/Eyeswithglucoma.jpg',
+    'sampleimage2': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/Sampb.jpg',
+    'sampleimage3': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/normalEsys2.jpg',
+    'sampleimage4': 'https://github.com/sathish0508/SathishProject/raw/beb567fe503454e67a6002e05a1002f352755e76/images/NormalEys.jpg',
+}
+
+@app.route('/download_all_images', methods=['GET'])
+def download_all_images():
+    # Collect all image IDs to send to the frontend
+    image_responses = [{'image_id': image_id} for image_id in image_map.keys()]
+    return jsonify({"images": image_responses}), 200
+
+@app.route('/download_image/<image_id>', methods=['GET'])
+def download_image(image_id):
+    # Validate the image_id
+    if image_id not in image_map:
+        return jsonify({"error": "Invalid image ID"}), 404
+
+    # Fetch the image from the URL
+    image_url = image_map[image_id]
+    response = requests.get(image_url)
+
+    if response.status_code == 200:
+        # Return the image as a downloadable file
+        return send_file(BytesIO(response.content), as_attachment=True, download_name=f"{image_id}.jpg", mimetype='image/jpeg')
+    else:
+        return jsonify({"error": f"Failed to fetch {image_id} from GitHub"}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)
