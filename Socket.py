@@ -1,60 +1,34 @@
+from aiohttp import web
 import asyncio
-import websockets
 import json
 import socket
-import os
-from aiohttp import web
-
-def get_local_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-    finally:
-        s.close()
-    return ip
-
-HOST_IP = get_local_ip()
-HTTP_PORT = int(os.environ.get("PORT", 8081))
+import aiohttp
 
 connected_clients = set()
 
-async def handle_client(websocket, path):
-    connected_clients.add(websocket)
-    try:
-        async for message in websocket:
-            print(f"Received from client: {message}")
-    except websockets.exceptions.ConnectionClosed:
-        pass
-    finally:
-        connected_clients.remove(websocket)
+async def websocket_handler(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+    connected_clients.add(ws)
+    
+    async for msg in ws:
+        if msg.type == aiohttp.WSMsgType.TEXT:
+            print(f"Received: {msg.data}")
+        elif msg.type == aiohttp.WSMsgType.ERROR:
+            print('ws connection closed with exception %s' % ws.exception())
+    
+    connected_clients.remove(ws)
+    return ws
 
-async def broadcast_attendance_trigger():
-    if connected_clients:
-        message = json.dumps({"type": "attendance_trigger"})
-        await asyncio.gather(*[client.send(message) for client in connected_clients])
-        print("✅ Attendance trigger sent.")
-    else:
-        print("⚠️ No connected clients.")
-
-async def handle_trigger(request):
-    await broadcast_attendance_trigger()
-    return web.Response(text="Attendance trigger sent successfully", status=200)
+async def trigger_handler(request):
+    message = json.dumps({"type": "attendance_trigger"})
+    for ws in connected_clients:
+        await ws.send_str(message)
+    return web.Response(text="Attendance trigger sent")
 
 app = web.Application()
-app.router.add_post('/trigger', handle_trigger)
+app.router.add_get('/ws', websocket_handler)
+app.router.add_post('/trigger', trigger_handler)
 
-async def main():
-    websocket_server = await websockets.serve(handle_client, "0.0.0.0", 9098)
-    print(f"✅ WebSocket running on ws://0.0.0.0:9098")
-
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', HTTP_PORT)
-    await site.start()
-    print(f"✅ HTTP trigger available at http://{HOST_IP}:{HTTP_PORT}/trigger")
-
-    await asyncio.Event().wait()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    web.run_app(app, port=8080)
