@@ -2,13 +2,12 @@ import asyncio
 import websockets
 import json
 import socket
+import os
 from aiohttp import web
 
-# Get current machine IP address
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # This does not need to be reachable, just forces IP detection
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
     finally:
@@ -16,11 +15,10 @@ def get_local_ip():
     return ip
 
 HOST_IP = get_local_ip()
+HTTP_PORT = int(os.environ.get("PORT", 8081))
 
-# Store connected clients
 connected_clients = set()
 
-# WebSocket handler
 async def handle_client(websocket, path):
     connected_clients.add(websocket)
     try:
@@ -31,7 +29,6 @@ async def handle_client(websocket, path):
     finally:
         connected_clients.remove(websocket)
 
-# Broadcast trigger
 async def broadcast_attendance_trigger():
     if connected_clients:
         message = json.dumps({"type": "attendance_trigger"})
@@ -40,27 +37,24 @@ async def broadcast_attendance_trigger():
     else:
         print("⚠️ No connected clients.")
 
-# HTTP POST trigger
 async def handle_trigger(request):
     await broadcast_attendance_trigger()
     return web.Response(text="Attendance trigger sent successfully", status=200)
 
-# aiohttp setup
 app = web.Application()
 app.router.add_post('/trigger', handle_trigger)
 
-# Start servers
 async def main():
-    websocket_server = await websockets.serve(handle_client, HOST_IP, 9098)
-    print(f"✅ WebSocket running on ws://{HOST_IP}:9098")
+    websocket_server = await websockets.serve(handle_client, "0.0.0.0", 9098)
+    print(f"✅ WebSocket running on ws://0.0.0.0:9098")
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', 8081)
+    site = web.TCPSite(runner, '0.0.0.0', HTTP_PORT)
     await site.start()
-    print(f"✅ HTTP trigger available at http://{HOST_IP}:8081/trigger")
+    print(f"✅ HTTP trigger available at http://{HOST_IP}:{HTTP_PORT}/trigger")
 
     await asyncio.Event().wait()
 
-# Run
-await main()
+if __name__ == "__main__":
+    asyncio.run(main())
